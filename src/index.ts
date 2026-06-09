@@ -354,9 +354,12 @@ export const fetchPoneglyphCardCatalogIds = async ({
   const cardIds: string[] = [];
   let page = 1;
   while (true) {
-    const url = new URL(`${baseUrl.replace(/\/+$/u, "")}/v1/cards`);
+    const url = new URL(`${baseUrl.replace(/\/+$/u, "")}/v1/search`);
     url.searchParams.set("page", String(page));
     url.searchParams.set("limit", String(pageSize));
+    url.searchParams.set("sort", "card_number");
+    url.searchParams.set("order", "asc");
+    url.searchParams.set("collapse", "card");
     const response = await fetchImpl(url);
     if (!response.ok) {
       throw new Error(

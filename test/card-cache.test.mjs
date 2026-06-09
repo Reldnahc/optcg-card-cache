@@ -232,8 +232,14 @@ test("fetchPoneglyphCardCatalogIds follows pagination and deduplicates", async (
   });
 
   assert.deepEqual(cardIds, ["OP01-001", "OP01-002", "OP01-003"]);
-  assert.equal(urls[0], "https://api.example/v1/cards?page=1&limit=2");
-  assert.equal(urls[1], "https://api.example/v1/cards?page=2&limit=2");
+  assert.equal(
+    urls[0],
+    "https://api.example/v1/search?page=1&limit=2&sort=card_number&order=asc&collapse=card",
+  );
+  assert.equal(
+    urls[1],
+    "https://api.example/v1/search?page=2&limit=2&sort=card_number&order=asc&collapse=card",
+  );
 });
 
 test("clearRedisKeysByPatternFromClient scans and deletes matching keys", async () => {
