@@ -7,6 +7,7 @@ import {
   createRedisCardDataCacheFromClient,
   defaultPoneglyphSimCardCacheVersions,
   fetchPoneglyphCardCatalogIds,
+  fetchPoneglyphCardCatalogSnapshot,
   isCurrentCachedResolvedCard,
   summarizeCardCacheCoverage,
   warmCardCache,
@@ -245,6 +246,41 @@ test("fetchPoneglyphCardCatalogIds follows pagination and deduplicates", async (
     urls[1],
     "https://api.example/v1/search?page=2&limit=2&sort=card_number&order=asc&collapse=card",
   );
+});
+
+test("fetchPoneglyphCardCatalogSnapshot derives version from catalog metadata", async () => {
+  const responseFor = (name) =>
+    new Response(
+      JSON.stringify({
+        data: [
+          {
+            card_number: "OP01-001",
+            name,
+            effect: "[On Play] Draw 1 card.",
+          },
+          {
+            effect: null,
+            name: "Vanilla",
+            card_number: "OP01-002",
+          },
+        ],
+        pagination: { has_more: false },
+      }),
+      { status: 200 },
+    );
+
+  const first = await fetchPoneglyphCardCatalogSnapshot({
+    baseUrl: "https://api.example",
+    fetch: async () => responseFor("Monkey.D.Luffy"),
+  });
+  const second = await fetchPoneglyphCardCatalogSnapshot({
+    baseUrl: "https://api.example",
+    fetch: async () => responseFor("Monkey D. Luffy"),
+  });
+
+  assert.deepEqual(first.cardIds, ["OP01-001", "OP01-002"]);
+  assert.match(first.cardDataVersion, /^poneglyph-search-[a-f0-9]{16}$/);
+  assert.notEqual(first.cardDataVersion, second.cardDataVersion);
 });
 
 test("clearRedisKeysByPatternFromClient scans and deletes matching keys", async () => {

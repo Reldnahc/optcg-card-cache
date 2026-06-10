@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export interface CardRepositoryVersions {
   readonly cardDataVersion: string;
   readonly effectDefinitionsVersion: string;
@@ -105,11 +107,21 @@ export interface FetchCardCatalogIdsInput {
   readonly pageSize?: number;
 }
 
+export interface PoneglyphCardCatalogSnapshot {
+  readonly cardIds: readonly string[];
+  readonly cardDataVersion: string;
+}
+
 interface CardSearchEnvelope {
-  readonly data: readonly { readonly card_number: string }[];
+  readonly data: readonly CardSearchCatalogItem[];
   readonly pagination?: {
     readonly has_more?: boolean;
   };
+}
+
+interface CardSearchCatalogItem {
+  readonly card_number: string;
+  readonly [key: string]: unknown;
 }
 
 const cacheSchemaVersion = 1;
@@ -357,7 +369,21 @@ export const fetchPoneglyphCardCatalogIds = async ({
   fetch: fetchImpl = fetch,
   pageSize = 500,
 }: FetchCardCatalogIdsInput = {}): Promise<string[]> => {
+  const snapshot = await fetchPoneglyphCardCatalogSnapshot({
+    baseUrl,
+    fetch: fetchImpl,
+    pageSize,
+  });
+  return [...snapshot.cardIds];
+};
+
+export const fetchPoneglyphCardCatalogSnapshot = async ({
+  baseUrl = defaultPoneglyphBaseUrl,
+  fetch: fetchImpl = fetch,
+  pageSize = 500,
+}: FetchCardCatalogIdsInput = {}): Promise<PoneglyphCardCatalogSnapshot> => {
   const cardIds: string[] = [];
+  const hash = createHash("sha256");
   let page = 1;
   while (true) {
     const url = new URL(`${baseUrl.replace(/\/+$/u, "")}/v1/search`);
@@ -376,13 +402,23 @@ export const fetchPoneglyphCardCatalogIds = async ({
     if (!isCardSearchEnvelope(body)) {
       throw new Error("Poneglyph card catalog response is malformed.");
     }
-    cardIds.push(...body.data.map((card) => card.card_number));
+    const cards = [...body.data].sort((left, right) =>
+      left.card_number.localeCompare(right.card_number),
+    );
+    for (const card of cards) {
+      cardIds.push(card.card_number);
+      hash.update(stableJson(card));
+      hash.update("\n");
+    }
     if (body.pagination?.has_more !== true) {
       break;
     }
     page += 1;
   }
-  return unique(cardIds);
+  return {
+    cardIds: unique(cardIds),
+    cardDataVersion: `poneglyph-search-${hash.digest("hex").slice(0, 16)}`,
+  };
 };
 
 const isCachedResolvedCard = (value: unknown): value is CachedResolvedCard => {
@@ -427,6 +463,20 @@ const unique = (values: readonly string[]): string[] => {
     result.push(value);
   }
   return result;
+};
+
+const stableJson = (value: unknown): string => {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableJson(entry)).join(",")}]`;
+  }
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`)
+    .join(",")}}`;
 };
 
 const ratio = (value: number, total: number): number =>
