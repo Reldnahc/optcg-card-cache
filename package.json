@@ -1,6 +1,6 @@
 {
   "name": "optcg-card-cache",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Shared Poneglyph card cache keys, Redis adapter, and warming helpers for OPTCG services",
   "type": "module",
   "license": "MIT",

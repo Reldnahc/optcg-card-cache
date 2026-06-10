@@ -5,6 +5,7 @@ import {
   clearRedisKeysByPatternFromClient,
   createCardCacheKey,
   createRedisCardDataCacheFromClient,
+  defaultPoneglyphSimCardCacheVersions,
   fetchPoneglyphCardCatalogIds,
   isCurrentCachedResolvedCard,
   summarizeCardCacheCoverage,
@@ -16,6 +17,10 @@ const versions = {
   effectDefinitionsVersion: "generated-dev-v1",
   overlayVersion: "none",
 };
+
+test("exports the shared current sim cache versions", () => {
+  assert.deepEqual(defaultPoneglyphSimCardCacheVersions, versions);
+});
 
 const cachedCard = (cardId, status = "implemented-dsl") => ({
   cacheSchemaVersion: 1,

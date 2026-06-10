@@ -7,15 +7,14 @@ This package intentionally owns the cache contract outside the sim repo so the s
 ## Card Cache Keys
 
 ```ts
-import { createCardCacheKey } from "optcg-card-cache";
+import {
+  createCardCacheKey,
+  defaultPoneglyphSimCardCacheVersions,
+} from "optcg-card-cache";
 
 createCardCacheKey({
   cardId: "OP01-001",
-  versions: {
-    cardDataVersion: "live-poneglyph-dev-v1",
-    effectDefinitionsVersion: "generated-dev-v1",
-    overlayVersion: "none",
-  },
+  versions: defaultPoneglyphSimCardCacheVersions,
 });
 ```
 
@@ -24,6 +23,10 @@ The key shape matches the sim cache:
 ```txt
 card:<cardDataVersion>:<effectDefinitionsVersion>:<overlayVersion>:<cardId>
 ```
+
+`defaultPoneglyphSimCardCacheVersions` is the shared current sim cache-version
+contract. Admin/status callers and sim warmers should import it instead of
+duplicating version string literals.
 
 ## Warming
 
