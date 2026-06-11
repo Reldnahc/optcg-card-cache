@@ -15,7 +15,7 @@ import {
 
 const versions = {
   cardDataVersion: "live-poneglyph-dev-v1",
-  effectDefinitionsVersion: "generated-dev-v12",
+  effectDefinitionsVersion: "generated-dev-v13",
   overlayVersion: "none",
 };
 
@@ -48,7 +48,7 @@ const memoryCache = () => {
 test("createCardCacheKey matches the sim card cache key shape", () => {
   assert.equal(
     createCardCacheKey({ cardId: "OP01-001", versions }),
-    "card:live-poneglyph-dev-v1:generated-dev-v12:none:OP01-001",
+    "card:live-poneglyph-dev-v1:generated-dev-v13:none:OP01-001",
   );
 });
 
