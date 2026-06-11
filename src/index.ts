@@ -8,7 +8,7 @@ export interface CardRepositoryVersions {
 
 export const defaultPoneglyphSimCardCacheVersions: CardRepositoryVersions = {
   cardDataVersion: "live-poneglyph-dev-v1",
-  effectDefinitionsVersion: "generated-dev-v1",
+  effectDefinitionsVersion: "generated-dev-v12",
   overlayVersion: "none",
 };
 
